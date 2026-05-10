@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+dotenv
+pandas
+openpyxl
+python-multipart
+googlemaps
