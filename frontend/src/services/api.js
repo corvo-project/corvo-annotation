@@ -1,7 +1,9 @@
 import axios from "axios";
 
 // Base URL
-const API_BASE_URL = "https://www.corvo-project.eu/igg-annotation/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://www.corvo-project.eu/igg-annotation/api";
 
 // Funzioni per le chiamate
 export const getLocationList = async () => {
