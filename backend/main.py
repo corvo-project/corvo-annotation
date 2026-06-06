@@ -358,6 +358,9 @@ async def load_groups(file: UploadFile = File(...)):
 @app.put("/update-group")
 def update_group(request: UpdateGroupRequest):
     """Compare citations of two locations and update the one with fewer citations."""
+    if request.id1 == request.id2:
+        raise HTTPException(status_code=422, detail="Cannot merge an element with itself")
+
     db = SessionLocal()
     loc1 = db.query(Location).filter(Location.id == request.id1).first()
     loc2 = db.query(Location).filter(Location.id == request.id2).first()
@@ -371,6 +374,21 @@ def update_group(request: UpdateGroupRequest):
         f, g = loc1, loc2
     else:
         f, g = loc2, loc1
+
+    # Resolve location_info: propagate if only one is set, conflict if both differ
+    f_info = f.location_info
+    g_info = g.location_info
+    if f_info and g_info:
+        if f_info != g_info:
+            db.close()
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot merge two entities with different location annotations",
+            )
+    elif f_info and not g_info:
+        g.location_info = f_info
+    elif g_info and not f_info:
+        f.location_info = g_info
 
     # Save old group if f already had one
     old_group_id = f.group
