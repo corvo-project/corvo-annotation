@@ -14,10 +14,20 @@
         @click="cancel"
         type="button"
         title="Elimina"
-        class="btn btn-outline-danger markertype me-3 rounded"
+        class="btn btn-outline-danger markertype rounded-start"
         :disabled="!hasMarkerForSelected"
       >
         <i class="bi bi-trash3-fill h3"></i>
+      </button>
+
+      <button
+        @click="ignore"
+        type="button"
+        title="Località da ignorare"
+        class="btn btn-outline-danger markertype me-3 rounded-end"
+        :disabled="!hasMarkerForSelected"
+      >
+        <i class="bi bi-x-square h3"></i>
       </button>
 
       <button
@@ -51,14 +61,6 @@
       </button>
 
       <button
-        @click="magic"
-        type="button"
-        title="Posizionamento automatico"
-        class="btn btn-outline-primary markertype"
-      >
-        <i class="bi bi-magic h3"></i>
-      </button>
-      <button
         @click="activateLineMarker"
         type="button"
         title="Serie di punti"
@@ -71,9 +73,17 @@
         @click="showInputCoordinates"
         type="button"
         title="Ricerca per coordinate"
-        class="btn btn-outline-primary markertype ms-3 rounded"
+        class="btn btn-outline-success markertype ms-3 rounded-start"
       >
         <i class="bi bi-globe-americas h4"></i>
+      </button>
+      <button
+        @click="magic"
+        type="button"
+        title="Posizionamento automatico"
+        class="btn btn-outline-success markertype"
+      >
+        <i class="bi bi-magic h3"></i>
       </button>
     </div>
 
@@ -136,6 +146,7 @@ const markers = ref([]);
 const circleIsActive = ref(false);
 const shapeIsActive = ref(false);
 const lineIsActive = ref(false);
+const ignoreIsActive = ref(false);
 let currentDrawingLayer = null;
 const lat = ref(null);
 const lng = ref(null);
@@ -445,6 +456,44 @@ const addCircle = async (
   }
 
   return markerData;
+};
+
+const ignore = async () => {
+  if (hasMarkerForSelected()) {
+    alert("Questa località ha già un marker. Eliminalo prima di proseguire");
+    return;
+  }
+
+  cancelCurrentDrawing();
+
+  ignoreIsActive.value = true;
+  activeMarkerType.value = "ignore";
+
+  const newInfo = {
+    ...(props.selectedItem.location_info || {}),
+    marker: {
+      id: null,
+      type: "ignore",
+      lat: null,
+      lng: null,
+      radius: null,
+      coordinates: null,
+    },
+  };
+  try {
+    const res = await updateLocationInfo(props.selectedItem.id, newInfo);
+    if (!res || res.ok === false) {
+      console.error("Errore salvataggio stato 'ignore' sul server", res);
+      return;
+    }
+    props.selectedItem.location_info = newInfo;
+    emit("location-updated", {
+      id: props.selectedItem.id,
+      location_info: newInfo,
+    });
+  } catch (error) {
+    console.error("Errore durante il salvataggio dello stato 'ignore':", error);
+  }
 };
 
 const activateSimpleMarker = () => {
@@ -803,8 +852,7 @@ function showSingleMarker(loc) {
         map.value.setView([existing.lat, existing.lng], 13);
       }
     }
-  }
-  else if (loc.lat && loc.lng) {
+  } else if (loc.lat && loc.lng) {
     map.value.setView([loc.lat, loc.lng], 13);
   }
 }
