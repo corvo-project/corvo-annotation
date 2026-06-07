@@ -5,8 +5,8 @@
       style="min-height: 32vh; width: 30%; border-radius: 8px">
       <button v-if="group.length || loc" @click="backToDefault()"
         class="btn bg-warning d-flex align-items-center justify-content-center position-absolute fw-bolder me-3 mt-3 pb-1"
-        title="Annulla selezione" style="height: 3em; width: 3em; top: 0; right: 0">
-        <i class="bi bi-house-fill h4"></i>
+        title="Annulla selezione" style="height: 2.3em; width: 2.3em; top: 0; right: 0">
+        <i class="bi bi-house-fill h5 mt-1"></i>
       </button>
       <div>
         <h2 class="fw-bold">
@@ -18,7 +18,7 @@
       </div>
       <button v-if="group.length && loc" @click="handleRemove(loc.id)"
         class="btn bg-danger d-flex align-items-center justify-content-center position-absolute fw-bolder mb-2" style="
-          height: 2.2em;
+          height: 2em;
           width: 80%;
           bottom: 15px;
           margin-bottom: 5px;
