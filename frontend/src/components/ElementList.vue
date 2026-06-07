@@ -36,15 +36,68 @@
       ></span>
       <input
         v-model="searchQuery"
-        class="input-group-text text-start mb-3 col-sm-9 col-9 col-lg-10"
+        type="search"
+        class="input-group-text text-start col-sm-9 col-9 col-lg-10"
         placeholder="Cerca un luogo..."
         style="height: 3em"
         list="data"
-      />
+      ></input>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center mb-2 mt-2">
+      <div
+        class="btn-group col-sm-9 col-10 col-lg-11"
+        role="group"
+        aria-label="Basic example"
+      >
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          :class="{ active: activeMarkerFilter === 'simple' }"
+          @click = "toggleMarkerFilter('simple')"
+        >
+          <span class="bi bi-geo-alt-fill"></span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          :class="{ active: activeMarkerFilter === 'circle' }"
+          @click = "toggleMarkerFilter('circle')"
+        >
+          <span class="bi bi-circle"></span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          :class="{ active: activeMarkerFilter === 'polygon' }"
+          @click = "toggleMarkerFilter('polygon')"
+        >
+          <span class="bi bi-bounding-box-circles"></span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          :class="{ active: activeMarkerFilter === 'line' }"
+          @click = "toggleMarkerFilter('line')"
+        >
+          <span class="bi bi-node-plus"></span>
+        </button>
+
+        <button
+          v-if="activeMarkerFilter !== null"
+          type="button"
+          class="btn btn-sm btn-outline-danger ms-2"
+          style="width: 1em"
+          @click="activeMarkerFilter = null"
+          title="Rimuovi filtro"
+        >
+          <span class="bi bi-x-lg"></span>
+        </button>
+      </div>
     </div>
 
     <div class="scroll">
-      <ul class="list-group ms-3 mt-3">
+      <ul class="list-group ms-3">
         <template v-for="loc in filteredList" :key="loc.id">
           <li
             id="listagroup0"
@@ -86,26 +139,32 @@
                 <i
                   v-if="getMarkerType(loc) === 'simple'"
                   class="bi bi-geo-alt-fill col-auto me-2 d-flex justify-content-center align-items-center"
-                  style="border: solid 1px; border-radius: 3px; width: 1.7em"
+                  style="border: solid 2px; border-radius: 3px; width: 1.7em"
                   title="Marker semplice presente"
                 ></i>
                 <i
                   v-else-if="getMarkerType(loc) === 'circle'"
                   class="bi bi-circle col-auto me-2 d-flex justify-content-center align-items-center"
-                  style="border: solid 1px; border-radius: 3px; width: 1.7em"
+                  style="border: solid 2px; border-radius: 3px; width: 1.7em"
                   title="Raggio presente"
                 ></i>
                 <i
                   v-else-if="getMarkerType(loc) === 'polygon'"
                   class="bi bi-bounding-box-circles col-auto me-2 d-flex justify-content-center align-items-center"
-                  style="border: solid 1px; border-radius: 3px; width: 1.7em"
+                  style="border: solid 2px; border-radius: 3px; width: 1.7em"
                   title="Area personalizzata presente"
                 ></i>
                 <i
                   v-else-if="getMarkerType(loc) === 'line'"
-                  class="bi bi bi-node-plus col-auto me-2 d-flex justify-content-center align-items-center"
-                  style="border: solid 1px; border-radius: 3px; width: 1.7em"
+                  class="bi bi-node-plus col-auto me-2 d-flex justify-content-center align-items-center"
+                  style="border: solid 2px; border-radius: 3px; width: 1.7em"
                   title="Serie di punti presente"
+                ></i>
+                <i
+                  v-else-if="getMarkerType(loc) === 'ignore'"
+                  class="bi bi-x-square col-auto me-2 d-flex justify-content-center align-items-center"
+                  style="border: solid 2px; border-radius: 3px; width: 1.7em; color: #ff2400"
+                  title="Località da ignorare"
                 ></i>
                 <span
                   class="badge justify-content-center align-items-center d-flex"
@@ -160,6 +219,11 @@ const emit = defineEmits([
 ]);
 
 const searchQuery = ref("");
+
+const activeMarkerFilter = ref(null);
+const toggleMarkerFilter = (type) => {
+  activeMarkerFilter.value = activeMarkerFilter.value === type ? null : type;
+};
 
 const props = defineProps({
   locations: { type: Array, default: () => [] },
@@ -237,12 +301,19 @@ const groupCounts = computed(() => {
 const getGroupCount = (id) => groupCounts.value.get(id) ?? 0;
 
 const filteredList = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase();
+  let list = props.locations;
+  if (searchQuery.value) {
+    list = list.filter((item) =>
+      item?.name?.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    );
+  }
 
-  return props.locations.filter((item) =>
-    item.group === null &&
-    (!query || item?.name?.toLowerCase().includes(query)),
-  );
+  if (activeMarkerFilter.value) {
+    list = list.filter(
+      (item) => item?.location_info?.marker?.type === activeMarkerFilter.value,
+    );
+  }
+  return list;
 });
 
 const handleClick = (loc) => {
@@ -334,6 +405,8 @@ async function addToGroup(loc) {
   width: 30vw;
   height: 100vh;
   position: fixed;
+  display: flex;
+  flex-direction: column;
 }
 
 #divider {
@@ -343,10 +416,10 @@ async function addToGroup(loc) {
 }
 
 .scroll {
-  max-height: 80vh;
+  flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  width: auto;
+  width: 100%;
   margin: auto;
 }
 
