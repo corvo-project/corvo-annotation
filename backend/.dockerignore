@@ -1,0 +1,10 @@
+env/
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+.env
+.env-example
+Dockerfile
+docker-compose.yml
+.dockerignore

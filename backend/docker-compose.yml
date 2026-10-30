@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: .
+    image: corvo-annotation-backend
+    container_name: corvo-annotation-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    env_file:
+      - .env
+    environment:
+      # The database lives on the host (this directory), not inside the image
+      DATABASE_URL: sqlite:////data/locations.db
+    volumes:
+      - ./:/data
