@@ -300,8 +300,12 @@ const groupCounts = computed(() => {
 
 const getGroupCount = (id) => groupCounts.value.get(id) ?? 0;
 
+const rootLocations = computed(() =>
+  props.locations.filter((loc) => loc.group === null),
+);
+
 const filteredList = computed(() => {
-  let list = props.locations;
+  let list = rootLocations.value;
   if (searchQuery.value) {
     list = list.filter((item) =>
       item?.name?.toLowerCase().includes(searchQuery.value.toLowerCase()),
