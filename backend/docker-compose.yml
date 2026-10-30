@@ -1,3 +1,5 @@
+name: corvo-annotation
+
 services:
   backend:
     build: .
